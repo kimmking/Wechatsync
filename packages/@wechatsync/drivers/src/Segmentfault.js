@@ -1,11 +1,11 @@
 export default class SegmentfaultAdapter {
   constructor() {
     this.name = 'segmentfault'
-    modifyRequestHeaders('gateway.segmentfault.com/', {
-    	Origin: 'https://segmentfault.com',
+    modifyRequestHeaders('segmentfault.com/', {
+      Origin: 'https://segmentfault.com',
       Referer: 'https://segmentfault.com/'
     }, [
-    	'*://gateway.segmentfault.com/*',
+      '*://segmentfault.com/gateway/*',
     ])
   }
 
@@ -13,19 +13,14 @@ export default class SegmentfaultAdapter {
     var res = await $.get('https://segmentfault.com/user/settings')
     var parser = new DOMParser()
     var htmlDoc = parser.parseFromString(res, 'text/html')
-    var link = htmlDoc.getElementsByClassName('user-avatar')[0]
-    if (!link) {
+    var uid = htmlDoc.getElementById("SFUserId").getAttribute("value")
+    if (!uid) {
       throw Error('not found')
     }
 
-    var uid = link.href.split('/').pop()
-    var avatar = link.style['background-image']
-      .replace('url("', '')
-      .replace('")', '')
-    console.log(
-      link.href,
-      link.style['background-image'].replace('url("', '').replace('")', '')
-    )
+    // document.getElementsByTagName('img')[2].src
+
+    var avatar = htmlDoc.getElementsByTagName("img")[2].src
 
     return {
       uid: uid,
@@ -48,7 +43,7 @@ export default class SegmentfaultAdapter {
   }
 
   async editPost(post_id, post) {
-    if(!post.markdown) {
+    if (!post.markdown) {
       var turndownService = new turndown()
       turndownService.use(tools.turndownExt)
       var markdown = turndownService.turndown(post.post_content)
@@ -57,38 +52,52 @@ export default class SegmentfaultAdapter {
     }
 
     const pageHtml = await $.get('https://segmentfault.com/write')
-    const markStr = 'window.g_initialProps = '
+    console.log(' pageHtml=' + pageHtml);
+    //const markStr = '<script id="__NEXT_DATA__" type="application/json">'
+    const markStr = 'NEXT_DATA'
     const authIndex = pageHtml.indexOf(markStr)
-    if(authIndex == -1) {
-    	throw new Error('登录失效 authIndex=' + authIndex)
+    if (authIndex == -1) {
+      console.log('登录失效 authIndex=' + authIndex);
+      throw new Error('登录失效 authIndex=' + authIndex)
     }
 
-    const authTokenStr = pageHtml.substring(authIndex + markStr.length, pageHtml.indexOf(`;
-	</script>`, authIndex))
+    const props = pageHtml.substring(authIndex + 'NEXT_DATA__" type="application/json">'.length, pageHtml.indexOf(`</script>`, authIndex))
+    console.log('props=' + props);
 
     const pageConfig = new Function(
       'var config = ' +
-        authTokenStr +
-        '; return config;'
+      props +
+      '; return config;'
     )();
 
-    const token = pageConfig.global.sessionInfo.key
+    // "props.pageProps.initialState.global.sessionUser.user"
+    console.log('sessionUser.user=' + pageConfig.props.pageProps.initialState.global.sessionUser.user);
+
+    const token = pageConfig.props.pageProps.initialState.global.sessionInfo.key
+    console.log("sessionInfo.key=" + token)
+
+    // {title: "test2", tags: [], text: "tataseta", object_id: "", type: "article", language: "", cover: ""}
 
     var postStruct = {
-      "title":post.post_title,
-      "tags":[],
+      "cover": "",
+      "title": post.post_title,
+      "tags": [],
       "text": post.markdown,
-      "object_id":"",
-      "type":"article"
+      "object_id": "",
+      "type": "article"
     }
 
-    var res = await axios.post('https://gateway.segmentfault.com/draft', postStruct, {
-    	headers: {
-      	token: token,
-        accept: '*/*',
-    		'content-type': 'application/json',
+    console.log("postStruct=" + postStruct)
+
+    var res = await axios.post('https://segmentfault.com/gateway/draft/', postStruct, {
+      headers: {
+        Token: token,
+        Referer: 'https://segmentfault.com/',
+        Accept: '*/*',
+        'content-type': 'application/json',
       }
     })
+    console.log("axios.post=" + res)
     post_id = res.data.id
     return {
       status: 'success',
@@ -98,16 +107,46 @@ export default class SegmentfaultAdapter {
   }
 
   async uploadFile(file) {
+
+    const pageHtml = await $.get('https://segmentfault.com/write')
+    const markStr = '<script id="__NEXT_DATA__" type="application/json">'
+    const authIndex = pageHtml.indexOf(markStr)
+    if (authIndex == -1) {
+      console.log('登录失效 authIndex=' + authIndex);
+      throw new Error('登录失效 authIndex=' + authIndex)
+    }
+
+    const props = pageHtml.substring(authIndex + markStr.length, pageHtml.indexOf(`</script>`, authIndex))
+    console.log('props=' + props);
+
+    const pageConfig = new Function(
+      'var config = ' +
+      props +
+      '; return config;'
+    )();
+
+    // "props.pageProps.initialState.global.sessionUser.user"
+    console.log('sessionUser.user=' + pageConfig.props.pageProps.initialState.global.sessionUser.user);
+
+    const token = pageConfig.props.pageProps.initialState.global.sessionInfo.key
+    console.log("sessionInfo.key=" + token)
+
+
     var formdata = new FormData()
     var blob = new Blob([file.bits])
     formdata.append('image', blob)
     var res = await axios({
-      url: 'https://segmentfault.com/img/upload/image',
+      url: 'https://segmentfault.com/gateway/image',
       method: 'post',
       data: formdata,
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: {
+        Token: token,
+        Referer: 'https://segmentfault.com/',
+        'Content-Type': 'multipart/form-data'
+      },
     })
-    if(res.data[0] == 1) {
+    alert(JSON.stringify(res))
+    if (res.data[0] == 1) {
       throw new Error(res.data[1])
     }
     var url = res.data[1]
@@ -151,7 +190,7 @@ export default class SegmentfaultAdapter {
     var formdata = new FormData()
     formdata.append('image', $file)
     var res = await axios({
-      url: 'https://segmentfault.com/img/upload/image',
+      url: 'https://segmentfault.com/gateway/image',
       method: 'post',
       data: formdata,
       headers: { 'Content-Type': 'multipart/form-data' },

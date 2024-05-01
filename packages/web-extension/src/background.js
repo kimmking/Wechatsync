@@ -23,7 +23,7 @@ var _isInjected = false
 
 function startInspectInject() {
   if (_isInjected) return
-  console.log = function() {
+  console.log = function () {
     rawLogFun.apply(null, arguments)
     try {
       var args = [].slice.apply(arguments)
@@ -48,7 +48,7 @@ function brodcastToWatcher(args) {
     chrome.tabs.sendMessage(
       logWatcher.tab.id,
       { method: 'consoleLog', args: args },
-      function (response) {}
+      function (response) { }
     )
   }
 }
@@ -63,7 +63,7 @@ async function setDriver(driver) {
   window.currentDriver = driver
   window.driverMeta = driver.getMeta()
   getDriver = window.currentDriver.getDriver
-  getPublicAccounts = async function() {
+  getPublicAccounts = async function () {
     var users = await window.currentDriver.getPublicAccounts()
     try {
       users.forEach(publicAccount => {
@@ -160,110 +160,110 @@ class Syner {
       insepectURLs = insepectURLs.concat(window.driverMeta.inspectUrls)
     }
 
-      chrome.webRequest.onBeforeSendHeaders.addListener(
-        function(details) {
-          console.log('details.requestHeaders', details, details.url)
-          // WEIBO API
-          try {
-            var modifRules = [
-              {
-                prefix: 'mp.weixin.qq.com/cgi-bin',
-                origin: 'https://mp.weixin.qq.com',
-                referer: 'https://mp.weixin.qq.com/cgi-bin/appmsg',
-              },
-              {
-                prefix: 'mp.toutiao.com/mp',
-                origin: 'https://mp.toutiao.com',
-                referer: 'https://mp.toutiao.com/profile_v4/graphic/publish',
-              },
-            ]
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      function (details) {
+        console.log('details.requestHeaders', details, details.url)
+        // WEIBO API
+        try {
+          var modifRules = [
+            {
+              prefix: 'mp.weixin.qq.com/cgi-bin',
+              origin: 'https://mp.weixin.qq.com',
+              referer: 'https://mp.weixin.qq.com/cgi-bin/appmsg',
+            },
+            {
+              prefix: 'mp.toutiao.com/mp',
+              origin: 'https://mp.toutiao.com',
+              referer: 'https://mp.toutiao.com/profile_v4/graphic/publish',
+            },
+          ]
 
-            for (let index = 0; index < modifRules.length; index++) {
-              const modifRule = modifRules[index]
-              if (details.url.indexOf(modifRule.prefix) > -1) {
-                var foundRefereHeader = false
-                for (var i = 0; i < details.requestHeaders.length; ++i) {
-                  if (details.requestHeaders[i].name === 'Referer')
-                    foundRefereHeader = true
-                  if (details.requestHeaders[i].name === 'Origin') {
-                    details.requestHeaders[i].value = modifRule.origin
-                  }
-                }
-                if (!foundRefereHeader) {
-                  details.requestHeaders.push({
-                    name: 'Referer',
-                    value: modifRule.referer,
-                  })
-                }
-                console.log('details.requestHeaders', modifRule, details)
-              } else {
-                // console.log('rule not macth', modifRule.prefix, details.url)
-              }
-            }
-
-            if (details.url.indexOf('https://card.weibo.com/article/v3') > -1) {
+          for (let index = 0; index < modifRules.length; index++) {
+            const modifRule = modifRules[index]
+            if (details.url.indexOf(modifRule.prefix) > -1) {
               var foundRefereHeader = false
               for (var i = 0; i < details.requestHeaders.length; ++i) {
                 if (details.requestHeaders[i].name === 'Referer')
                   foundRefereHeader = true
                 if (details.requestHeaders[i].name === 'Origin') {
-                  details.requestHeaders[i].value = 'https://card.weibo.com'
+                  details.requestHeaders[i].value = modifRule.origin
                 }
               }
               if (!foundRefereHeader) {
                 details.requestHeaders.push({
                   name: 'Referer',
-                  value: 'https://card.weibo.com/article/v3/editor',
+                  value: modifRule.referer,
                 })
               }
-              console.log('details.requestHeaders', details)
+              console.log('details.requestHeaders', modifRule, details)
+            } else {
+              // console.log('rule not macth', modifRule.prefix, details.url)
             }
+          }
 
-            //  zhihu xsrf token
-            if (details.url.indexOf('zhuanlan.zhihu.com/api') > -1) {
-              var cookieHeader = details.requestHeaders.filter(h => {
-                return h.name.toLowerCase() == 'cookie'
-              })
-
-              if (cookieHeader.length) {
-                var cookieStr = cookieHeader[0].value
-                var _xsrf = getCookie('_xsrf', cookieStr)
-                if (_xsrf) {
-                  details.requestHeaders.push({
-                    name: 'x-xsrftoken',
-                    value: _xsrf,
-                  })
-                }
-                console.log('cookieStr', cookieStr)
+          if (details.url.indexOf('https://card.weibo.com/article/v3') > -1) {
+            var foundRefereHeader = false
+            for (var i = 0; i < details.requestHeaders.length; ++i) {
+              if (details.requestHeaders[i].name === 'Referer')
+                foundRefereHeader = true
+              if (details.requestHeaders[i].name === 'Origin') {
+                details.requestHeaders[i].value = 'https://card.weibo.com'
               }
-              console.log('details.requestHeaders', details)
             }
-          } catch (e) {
-            console.log('modify headers error', e)
+            if (!foundRefereHeader) {
+              details.requestHeaders.push({
+                name: 'Referer',
+                value: 'https://card.weibo.com/article/v3/editor',
+              })
+            }
+            console.log('details.requestHeaders', details)
           }
 
-          // Bilibili origin set
-          if (details.url.indexOf('https://api.bilibili.com/x/article/creative/draft/addupdate') > -1){
-            details.requestHeaders.push({
-              name: 'origin',
-              value: 'https://member.bilibili.com',
+          //  zhihu xsrf token
+          if (details.url.indexOf('zhuanlan.zhihu.com/api') > -1) {
+            var cookieHeader = details.requestHeaders.filter(h => {
+              return h.name.toLowerCase() == 'cookie'
             })
-            console.log('bilibili header origin add success: ', details)
-          }
 
-          try {
-            window.driverMeta.urlHandler(details)
-          } catch (e) {
-            console.log('urlHandler', e)
+            if (cookieHeader.length) {
+              var cookieStr = cookieHeader[0].value
+              var _xsrf = getCookie('_xsrf', cookieStr)
+              if (_xsrf) {
+                details.requestHeaders.push({
+                  name: 'x-xsrftoken',
+                  value: _xsrf,
+                })
+              }
+              console.log('cookieStr', cookieStr)
+            }
+            console.log('details.requestHeaders', details)
           }
+        } catch (e) {
+          console.log('modify headers error', e)
+        }
 
-          return { requestHeaders: details.requestHeaders }
-        },
-        {
-          urls: insepectURLs,
-        },
-        ['blocking', 'requestHeaders', 'extraHeaders',]
-      )
+        // Bilibili origin set
+        if (details.url.indexOf('https://api.bilibili.com/x/article/creative/draft/addupdate') > -1) {
+          details.requestHeaders.push({
+            name: 'origin',
+            value: 'https://member.bilibili.com',
+          })
+          console.log('bilibili header origin add success: ', details)
+        }
+
+        try {
+          window.driverMeta.urlHandler(details)
+        } catch (e) {
+          console.log('urlHandler', e)
+        }
+
+        return { requestHeaders: details.requestHeaders }
+      },
+      {
+        urls: insepectURLs,
+      },
+      ['blocking', 'requestHeaders', 'extraHeaders',]
+    )
   }
 
   getSender(guid) {
@@ -276,18 +276,18 @@ class Syner {
 
   listenRequest() {
     var self = this
-    chrome.runtime.onMessage.addListener(function(
+    chrome.runtime.onMessage.addListener(function (
       request,
       sender,
       sendResponseA
     ) {
       if (request.action && request.action == 'getAccount') {
         sendResponseA(db.getAccounts().concat(publicAccounts))
-        ;(async () => {
-          // if (request.force) {
-          publicAccounts = await getPublicAccounts()
-          // }
-        })()
+          ; (async () => {
+            // if (request.force) {
+            publicAccounts = await getPublicAccounts()
+            // }
+          })()
       }
       if (request.action && request.action == 'addTask') {
         console.log(request)
@@ -317,59 +317,59 @@ class Syner {
 
       if (request.action && request.action == 'parseArticle') {
         console.log(request)
-        ;(async () => {
-          var driver = getDriver(request.account)
-          try {
-            var article = await driver.getArticle(request.data)
-            sendResponseA({
-              article: article,
-            })
-          } catch (e) {
-            console.log(e)
-          }
-        })()
+          ; (async () => {
+            var driver = getDriver(request.account)
+            try {
+              var article = await driver.getArticle(request.data)
+              sendResponseA({
+                article: article,
+              })
+            } catch (e) {
+              console.log(e)
+            }
+          })()
         return true
       }
 
       if (request.action && request.action == 'getCache') {
         console.log(request)
-        ;(async () => {
-          chrome.storage.local.get(request.names ? request.names : [request.name], function(
-            result
-          ) {
-            sendResponseA({
-              result: result,
+          ; (async () => {
+            chrome.storage.local.get(request.names ? request.names : [request.name], function (
+              result
+            ) {
+              sendResponseA({
+                result: result,
+              })
             })
-          })
-        })();
+          })();
         return true
       }
 
       if (request.action && request.action == 'setCache') {
         console.log(request)
-        ;(async () => {
-          var d = {}
-          d[request.name] = request.value
-          chrome.storage.local.set(d, function() {
-            console.log('cache set')
-          })
-        })();
+          ; (async () => {
+            var d = {}
+            d[request.name] = request.value
+            chrome.storage.local.set(d, function () {
+              console.log('cache set')
+            })
+          })();
         return true
       }
 
       if (request.action && request.action == 'sendEvent') {
         console.log(request)
-        ;(async () => {
-          try {
-            var event = request.event
-            tracker.sendEvent(event.category, event.action, event.label)
-          } catch (e) {}
-          // var d = {}
-          // d[request.name] = request.value
-          // chrome.storage.local.set(d, function() {
-          //   console.log('cache set')
-          // })
-        })()
+          ; (async () => {
+            try {
+              var event = request.event
+              tracker.sendEvent(event.category, event.action, event.label)
+            } catch (e) { }
+            // var d = {}
+            // d[request.name] = request.value
+            // chrome.storage.local.set(d, function() {
+            //   console.log('cache set')
+            // })
+          })()
         return true
       }
 
@@ -392,7 +392,7 @@ class Syner {
               console.log('try patch driver')
               try {
                 var patchCodeVm = getDriverProvider(request.data.code)
-                if(patchCodeVm.driver) {
+                if (patchCodeVm.driver) {
                   window.currentDriver.addCustomDriver(patchName, patchCodeVm.driver)
                   console.log('custom driver seted')
                   sendResponseA({
@@ -443,7 +443,7 @@ class Syner {
                   {
                     driver: request.data.code,
                   },
-                  function() {
+                  function () {
                     console.log('driver seted')
                     loadDriver()
                   }
@@ -454,13 +454,13 @@ class Syner {
                     status: 1
                   },
                 })
-              // } else {
-              //   sendResponseA({
-              //     result: {
-              //     status: 0
-              //   },
-              //   })
-              // }
+                // } else {
+                //   sendResponseA({
+                //     result: {
+                //     status: 0
+                //   },
+                //   })
+                // }
               }
             }
           } catch (e) {
@@ -478,41 +478,41 @@ class Syner {
 
       if (request.action && request.action == 'callDriverMethod') {
         console.log(request)
-        ;(async () => {
-          try {
-            var driver = getDriver(request.data.account )
-            var methodName = request.methodName
-            if (methodName === 'uploadImage') {
-              var postId = Math.floor(Math.random() * 100000)
-              var imgSRC = request.data.src;
-              var result = await upImage(
-                driver,
-                imgSRC,
-                postId,
-                postId + '.png'
-              )
-              sendResponseA({
-                result: result,
-              })
-            } else {
-              var driverFunc = driver[methodName]
-              if(!driverFunc) {
+          ; (async () => {
+            try {
+              var driver = getDriver(request.data.account)
+              var methodName = request.methodName
+              if (methodName === 'uploadImage') {
+                var postId = Math.floor(Math.random() * 100000)
+                var imgSRC = request.data.src;
+                var result = await upImage(
+                  driver,
+                  imgSRC,
+                  postId,
+                  postId + '.png'
+                )
                 sendResponseA({
-                  error: 'method not exists',
+                  result: result,
                 })
               } else {
-                var callResult = await driverFunc(request.data)
-                sendResponseA({
-                  result: callResult,
-                })
+                var driverFunc = driver[methodName]
+                if (!driverFunc) {
+                  sendResponseA({
+                    error: 'method not exists',
+                  })
+                } else {
+                  var callResult = await driverFunc(request.data)
+                  sendResponseA({
+                    result: callResult,
+                  })
+                }
               }
+            } catch (e) {
+              sendResponseA({
+                error: e.toString(),
+              })
             }
-          } catch (e) {
-            sendResponseA({
-              error: e.toString(),
-            })
-          }
-        })()
+          })()
         return true
       }
     })
@@ -521,129 +521,131 @@ class Syner {
   startWroker() {
     var self = this
 
-    ;(function loop() {
-      var tasks = db.getTasks()
-      tasks.forEach((t, tid) => {
-        t.tid = tid
-      })
-      var notDone = tasks.filter(t => {
-        return t.status == 'wait'
-      })
-
-      try {
-        chrome.browserAction.setBadgeText({
-          text: notDone.length + '',
+      ; (function loop() {
+        var tasks = db.getTasks()
+        tasks.forEach((t, tid) => {
+          t.tid = tid
         })
-      } catch (e) {}
-
-      var timeOut = tasks.filter(t => {
-        return t.status == 'uploading'
-      })
-
-      timeOut.forEach(t => {
-        // db.editTask(t.tid, {
-        //   status: "failed",
-        //   msg: "超时"
-        // });
-      })
-
-      var currentTask = notDone.shift()
-      if (!currentTask) {
-        setTimeout(loop, 3 * 1000)
-        return
-      }
-
-      ;(async () => {
-        db.editTask(currentTask.tid, {
-          status: 'uploading',
-          startTime: Date.now(),
+        var notDone = tasks.filter(t => {
+          return t.status == 'wait'
         })
 
         try {
-          for (let index = 0; index < currentTask.accounts.length; index++) {
-            const account = currentTask.accounts[index]
-            try {
-              await self.doSync(account, currentTask)
-              console.log('doSync done', account)
-              chrome.notifications.create(
-                'sync_sucess_' + currentTask.tid,
-                {
-                  type: 'basic',
-                  title: '同步成功',
-                  message: currentTask.post.title + ' >> ' + account.title,
-                  iconUrl: 'images/logo.png',
-                },
-                function() {
-                  window.setTimeout(function() {
-                    chrome.notifications.clear(
-                      'sync_sucess_' + currentTask.tid,
-                      function() {}
-                    )
-                  }, 4000)
-                }
-              )
-
-              var link = ''
-              if (account.type != 'wordpress') {
-                link = account.editResp.draftLink
-              } else {
-                link = account.params.wpUrl + '?p=' + account.post_id
-              }
-
-              console.log(account.editResp, link)
-              tracker.sendEvent('sync', 'sucess', link)
-            } catch (e) {
-              console.error(e)
-              var msgErro = e ? e.toString() : '未知错误'
-              chrome.notifications.create(
-                'sync_error_' + currentTask.tid,
-                {
-                  type: 'basic',
-                  title: '同步失败',
-                  message: msgErro,
-                  iconUrl: 'images/logo.png',
-                },
-                function() {
-                  window.setTimeout(function() {
-                    chrome.notifications.clear(
-                      'sync_error_' + currentTask.tid,
-                      function() {}
-                    )
-                  }, 4000)
-                }
-              )
-
-              account.status = 'failed'
-              account.error = msgErro
-
-              db.editTask(currentTask.tid, {
-                accounts: currentTask.accounts,
-              })
-
-              tracker.sendEvent('sync', 'error', msgErro)
-              tracker.sendEvent(
-                'sync',
-                account.type + '-error',
-                [currentTask.post.link, +msgErro].join(':')
-              )
-
-              tracker.sendEvent(
-                'sync-' + window.driverMeta.versionNumber,
-                'error',
-                msgErro
-              )
-            }
-          }
-        } catch (e) {
-          console.log(e)
-          db.editTask(currentTask.tid, {
-            status: 'failed',
-            msg: e + '',
+          chrome.browserAction.setBadgeText({
+            text: notDone.length + '',
           })
+        } catch (e) { }
+
+        var timeOut = tasks.filter(t => {
+          return t.status == 'uploading'
+        })
+
+        timeOut.forEach(t => {
+          // db.editTask(t.tid, {
+          //   status: "failed",
+          //   msg: "超时"
+          // });
+        })
+
+        var currentTask = notDone.shift()
+        if (!currentTask) {
+          setTimeout(loop, 3 * 1000)
+          return
         }
+
+        ; (async () => {
+          db.editTask(currentTask.tid, {
+            status: 'uploading',
+            startTime: Date.now(),
+          })
+
+          try {
+            for (let index = 0; index < currentTask.accounts.length; index++) {
+              const account = currentTask.accounts[index]
+              account.status = 'init'
+              try {
+                await self.doSync(account, currentTask)
+                console.log('doSync done', account)
+                chrome.notifications.create(
+                  'sync_sucess_' + currentTask.tid,
+                  {
+                    type: 'basic',
+                    title: '同步成功',
+                    message: currentTask.post.title + ' >> ' + account.title,
+                    iconUrl: 'images/logo.png',
+                  },
+                  function () {
+                    window.setTimeout(function () {
+                      chrome.notifications.clear(
+                        'sync_sucess_' + currentTask.tid,
+                        function () { }
+                      )
+                    }, 4000)
+                  }
+                )
+
+                var link = ''
+                if (account.type != 'wordpress') {
+                  link = account.editResp.draftLink
+                } else {
+                  link = account.params.wpUrl + '?p=' + account.post_id
+                }
+
+                console.log(account.editResp, link)
+                tracker.sendEvent('sync', 'sucess', link)
+              } catch (e) {
+                console.error(e)
+                console.log('e -> ' + e)
+                var msgErro = e ? e.toString() : '未知错误'
+                chrome.notifications.create(
+                  'sync_error_' + currentTask.tid,
+                  {
+                    type: 'basic',
+                    title: '同步失败',
+                    message: msgErro,
+                    iconUrl: 'images/logo.png',
+                  },
+                  function () {
+                    window.setTimeout(function () {
+                      chrome.notifications.clear(
+                        'sync_error_' + currentTask.tid,
+                        function () { }
+                      )
+                    }, 4000)
+                  }
+                )
+
+                account.status = 'failed'
+                account.error = msgErro
+
+                db.editTask(currentTask.tid, {
+                  accounts: currentTask.accounts,
+                })
+
+                tracker.sendEvent('sync', 'error', msgErro)
+                tracker.sendEvent(
+                  'sync',
+                  account.type + '-error',
+                  [currentTask.post.link, +msgErro].join(':')
+                )
+
+                tracker.sendEvent(
+                  'sync-' + window.driverMeta.versionNumber,
+                  'error',
+                  msgErro
+                )
+              }
+            }
+          } catch (e) {
+            console.log(e)
+            db.editTask(currentTask.tid, {
+              status: 'failed',
+              msg: e + '',
+            })
+          }
+        })()
+        setTimeout(loop, 2 * 1000)
       })()
-      setTimeout(loop, 2 * 1000)
-    })()
   }
 
   async doSync(account, currentTask) {
@@ -655,6 +657,7 @@ class Syner {
     })
 
     var postContent = JSON.parse(JSON.stringify(currentTask.post))
+    console.log('postContent=' + postContent)
 
     try {
       if (driver.preEditPost) {
@@ -687,7 +690,7 @@ class Syner {
         {
           post_title: postContent.title,
           post_author: account.params ? account.params.wpUser : '',
-          post_content:  postContent[`content_${account.type}`] ?  postContent[`content_${account.type}`] : postContent.content,
+          post_content: postContent[`content_${account.type}`] ? postContent[`content_${account.type}`] : postContent.content,
         },
         postContent
       ),
@@ -706,13 +709,14 @@ class Syner {
     console.log('upload images', imags.length)
     account.totalImages = imags.length
     account.uploadedCount = 1
+    account.status = 'init'
     account.msg = '准备上传' + imags.length + '张图片'
 
     db.editTask(currentTask.tid, {
       accounts: currentTask.accounts,
     })
 
-    var imageMaxRetry = 10
+    var imageMaxRetry = 2
 
     for (let mindex = 0; mindex < imags.length; mindex++) {
       const img = imags.eq(mindex)
@@ -731,7 +735,7 @@ class Syner {
       }
       console.log('upload image start', imgSRC)
 
-      var maxRetry = 3
+      var maxRetry = 1
 
       for (let index = 0; index < imageMaxRetry; index++) {
         console.log('imageMaxRetry', index)
@@ -746,11 +750,15 @@ class Syner {
           if (driver.editImg) {
             try {
               driver.editImg(img, newSrc)
-            } catch (e) {}
+            } catch (e) {
+              if (index < 2) alert(e)
+            }
           }
           console.log('upload image done', newSrc.url, newSrc)
           break
-        } catch (e) {}
+        } catch (e) {
+          //if (index < 1) alert(e)
+        }
 
         account.msg =
           '正在上传第' +
@@ -792,7 +800,7 @@ class Syner {
     }
 
     if (postContent.thumb) {
-      var maxRetry = 3
+      var maxRetry = 1
       for (let index = 0; index < imageMaxRetry; index++) {
         console.log('imageMaxRetry', index)
         try {
@@ -846,13 +854,13 @@ console.log('background.js')
 function afterDriver() {
   var syncer = new Syner()
   window.syncer = syncer
-  ;(async () => {
-    publicAccounts = await getPublicAccounts()
-  })()
+    ; (async () => {
+      publicAccounts = await getPublicAccounts()
+    })()
   window.getPublicAccounts = getPublicAccounts
 }
 
-;(async () => {
+; (async () => {
   console.log('WECHAT_ENV', process.env.WECHAT_ENV)
   if (process.env.WECHAT_ENV == 'production') {
     console.log('load driver')
@@ -871,7 +879,7 @@ function createSharedContextmenu() {
       id: 'getAttrile',
       title: '提取文章并同步',
       contexts: ['all'],
-      onclick: function(info, tab) {
+      onclick: function (info, tab) {
         // var text = info.selectionText;
         // text = text || tab.title;
         var link = info.linkUrl || info.frameUrl || info.pageUrl

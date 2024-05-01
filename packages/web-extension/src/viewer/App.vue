@@ -2,45 +2,26 @@
   <div class="viewer-wrapper">
     <div class="ctrl">
       <div class="major-actions">
-        <el-popover
-          placement="top-start"
-          width="500"
-          :title="submitting ? '发布中' : '发布到'"
-          v-model="visible"
-          trigger="click"
-        >
+        <el-popover placement="top-start" width="500" :title="submitting ? '发布中' : '发布到'" v-model="visible"
+          trigger="click">
           <div>
             <hr />
             <div class="all-pubaccounts" v-if="!submitting">
               <div class="account-item" v-for="account in allAccounts">
                 <el-checkbox v-model="account.checked">
-                  <img
-                    :src="account.icon ? account.icon : ''"
-                    class="icon"
-                    height="20"
-                    style="vertical-align: -6px; height: 20px !important"
-                  />
+                  <img :src="account.icon ? account.icon : ''" class="icon" height="20"
+                    style="vertical-align: -6px; height: 20px !important" />
                   {{ account.title }}
                 </el-checkbox>
               </div>
             </div>
             <div class="all-pubaccounts" v-if="submitting && taskStatus">
               <p v-if="!taskStatus.accounts">等待发布..</p>
-              <div
-                class="account-item taskStatus"
-                v-for="account in taskStatus.accounts"
-              >
-                <img
-                  :src="account.icon ? account.icon : ''"
-                  class="icon"
-                  height="20"
-                  style="vertical-align: -6px; height: 20px !important"
-                />
+              <div class="account-item taskStatus" v-for="account in taskStatus.accounts">
+                <img :src="account.icon ? account.icon : ''" class="icon" height="20"
+                  style="vertical-align: -6px; height: 20px !important" />
                 <span class="name-block">{{ account.title }}</span>
-                <span
-                  style="margin-left: 15px"
-                  :class="account.status + ' message'"
-                >
+                <span style="margin-left: 15px" :class="account.status + ' message'">
                   <template v-if="account.status == 'uploading'">
                     <div class="lds-dual-ring"></div>
                     {{ account.msg || '发布中' }}
@@ -52,57 +33,28 @@
 
                   <template v-if="account.status == 'done' && account.editResp">
                     同步成功
-                    <a
-                      :href="account.editResp.draftLink"
-                      v-if="account.type != 'wordpress' && account.editResp"
-                      style="margin-left: 5px"
-                      target="_blank"
-                      >查看草稿</a
-                    >
+                    <a :href="account.editResp.draftLink" v-if="account.type != 'wordpress' && account.editResp"
+                      style="margin-left: 5px" target="_blank">查看草稿</a>
                   </template>
                 </span>
               </div>
             </div>
             <hr />
 
-            <el-button
-              size="small"
-              v-if="!submitting"
-              type="primary"
-              @click="doSubmit"
-              >同步</el-button
-            >
+            <el-button size="small" v-if="!submitting" type="primary" @click="doSubmit">同步</el-button>
 
-            <el-button
-              size="small"
-              v-if="submitting"
-              type="primary"
-              @click="submitting = false"
-              >关闭</el-button
-            >
+            <el-button size="small" v-if="submitting" type="primary" @click="submitting = false">关闭</el-button>
           </div>
-          <el-button slot="reference" size="small" type="primary"
-            >同步</el-button
-          >
+          <el-button slot="reference" size="small" type="primary">同步</el-button>
         </el-popover>
       </div>
     </div>
-    <div
-      @click="closeView"
-      id="closebtn"
-      style="position: fixed; cursor: pointer; right: 20px; top: 20px"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="#111"
-        xmlns:xlink="http://www.w3.org/1999/xlink"
-      >
+    <div @click="closeView" id="closebtn" style="position: fixed; cursor: pointer; right: 20px; top: 20px">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#111"
+        xmlns:xlink="http://www.w3.org/1999/xlink">
         <path
-          d="M5.69999 5L5 5.70004L11.3 12.0001L5 18.3L5.69999 19L12 12.7L18.3 19L19 18.3L12.7 12.0001L19 5.70004L18.3 5.00012L12 11.3L5.69999 5Z"
-        ></path>
+          d="M5.69999 5L5 5.70004L11.3 12.0001L5 18.3L5.69999 19L12 12.7L18.3 19L19 18.3L12.7 12.0001L19 5.70004L18.3 5.00012L12 11.3L5.69999 5Z">
+        </path>
       </svg>
     </div>
     <div id="article" style="position: relative" v-click-outside="hide">
@@ -143,41 +95,41 @@ var service = analytics.getService('syncer')
 var tracker = service.getTracker('UA-48134052-13')
 var axios = require('axios')
 
-;(function ($) {
-  $.extend($.fn, {
-    makeCssInline: function () {
-      this.each(function (idx, el) {
-        var style = el.style
-        var types = [
-          'margin',
-          'padding',
-          'vertical-align',
-          'word-break',
-          'color',
-          'text-align',
-          'font-weight',
-          'border',
-          'box-sizing',
-          'font-size',
-          'font-family',
-          'line-height',
-          'white-space',
-          'background',
-          'overflow',
-        ]
-        var properties = []
-        for (var i in types) {
-          const property = types[i]
-          if ($(this).css(property)) {
-            properties.push(property + ':' + $(this).css(property))
+  ; (function ($) {
+    $.extend($.fn, {
+      makeCssInline: function () {
+        this.each(function (idx, el) {
+          var style = el.style
+          var types = [
+            'margin',
+            'padding',
+            'vertical-align',
+            'word-break',
+            'color',
+            'text-align',
+            'font-weight',
+            'border',
+            'box-sizing',
+            'font-size',
+            'font-family',
+            'line-height',
+            'white-space',
+            'background',
+            'overflow',
+          ]
+          var properties = []
+          for (var i in types) {
+            const property = types[i]
+            if ($(this).css(property)) {
+              properties.push(property + ':' + $(this).css(property))
+            }
           }
-        }
-        this.style.cssText = properties.join(';')
-        $(this).children().makeCssInline()
-      })
-    },
-  })
-})(jQuery)
+          this.style.cssText = properties.join(';')
+          $(this).children().makeCssInline()
+        })
+      },
+    })
+  })(jQuery)
 
 export default {
   name: '',
@@ -253,17 +205,22 @@ export default {
     taskUpdate(task) {
       this.taskStatus = task
       var currentAccount = task.accounts.filter((a) => {
+        console.log('a1=' + JSON.stringify(a))
         return a.status == 'uploading'
       })
 
       var doneAccounts = task.accounts.filter((a) => {
+        console.log('a2=' + JSON.stringify(a))
         if (this.lastProcessAccount) {
           return a.status == 'done' && a.type == this.lastProcessAccount.type
         }
         return a.status == 'done'
       })
 
-      var allDoneAccounts = task.accounts.filter((a) => a.status == 'done')
+      var allDoneAccounts = task.accounts.filter((a) => {
+        console.log('a3=' + JSON.stringify(a))
+        return a.status == 'done'
+      })
 
       var msg = ''
       var title = task.post.title
@@ -406,8 +363,8 @@ export default {
         }
         post.desc = self.pageData.description
         // 优化微信公众号、知乎 html 中换行被处理为文章中换行问题
-        post.content = post.content.replace(/\n+|\t+/g,"")
-        post.inline_content = post.inline_content.replace(/\n+|\t+/g,"")
+        post.content = post.content.replace(/\n+|\t+/g, "")
+        post.inline_content = post.inline_content.replace(/\n+|\t+/g, "")
 
         console.log("文章页抓取内容：" + post.content)
         return post
@@ -658,8 +615,7 @@ export default {
   margin-left: 12px;
 }
 
-.all-pubaccounts {
-}
+.all-pubaccounts {}
 
 .account-item img {
   margin-right: 5px;
@@ -671,8 +627,8 @@ export default {
   font-size: 14px;
 }
 
-.account-item .name-block {
-}
+.account-item .name-block {}
+
 .account-item .message {
   max-width: 300px;
   overflow: hidden;
@@ -680,6 +636,7 @@ export default {
   vertical-align: middle;
   line-height: 140%;
 }
+
 .account-item .failed {
   color: red;
 }
@@ -688,8 +645,8 @@ export default {
   color: #888;
 }
 
-.all-pubaccounts {
-}
+.all-pubaccounts {}
+
 .account-item .done {
   color: #155724;
 }
@@ -716,6 +673,7 @@ export default {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }

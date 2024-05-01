@@ -10,10 +10,12 @@
     background: #e91e63;
     color: #efefef;
     padding: 5px 0;
-"><p class=" ml-3 mb-0">
-      除WordPress、Typecho平台外
-      <br>其它平台只要在当前浏览器登录过即可被识别到账号，无需在此添加
-    </p></div>
+">
+      <p class=" ml-3 mb-0">
+        除WordPress、Typecho平台外
+        <br>其它平台只要在当前浏览器登录过即可被识别到账号，无需在此添加
+      </p>
+    </div>
     <ul class="account-types" style="padding-bottom: 53px" v-if="!type">
       <li @click="add(driver.type)" v-for="driver in drivers">
         <img :src="driver.icon" class="icon" height="20" />
@@ -24,50 +26,30 @@
         <img src="/images/arrow-right-light.png" style="float: right" />
       </li>
       <p class="mt-2 mb-2 ml-3">
-        <a href="https://www.wechatsync.com/?utm_source=extension-add-accoun#supports" target="_blank" class="mt-2 btn btn-outline-secondary">所有支持平台</a>
-        <a href="https://developer.wechatsync.com/?utm_source=extension-add-account" target="_blank" class="mt-2 ml-3 btn btn-info">添加平台</a>
+        <a href="https://www.wechatsync.com/?utm_source=extension-add-accoun#supports" target="_blank"
+          class="mt-2 btn btn-outline-secondary">所有支持平台</a>
+        <a href="https://developer.wechatsync.com/?utm_source=extension-add-account" target="_blank"
+          class="mt-2 ml-3 btn btn-info">添加平台</a>
       </p>
     </ul>
-    <div
-      v-if="type == 'wordpress' || type == 'typecho'"
-      class="add-account-form"
-    >
+    <div v-if="type == 'wordpress' || type == 'typecho'" class="add-account-form">
       <div style="text-align: center; margin-bottom: 15px">
         <img src="/images/wordpress-logo.svg" v-if="type == 'wordpress'" />
         <img src="/images/typecho-logo.svg" v-if="type == 'typecho'" />
       </div>
       <div class="form-group">
         <label for="exampleInputEmail1">博客地址</label>
-        <input
-          type="email"
-          v-model="wpUrl"
-          class="form-control"
-          placeholder="网站地址"
-        />
-        <small id="emailHelp" class="form-text text-muted"
-          >如(http://xxx.com)</small
-        >
+        <input type="email" v-model="wpUrl" class="form-control" placeholder="网站地址" />
+        <small id="emailHelp" class="form-text text-muted">如(http://xxx.com)</small>
       </div>
       <div class="form-group">
         <label for="exampleInputEmail1">账号</label>
-        <input
-          type="email"
-          class="form-control"
-          v-model="wpUser"
-          placeholder="账号"
-        />
-        <small id="emailHelp" class="form-text text-muted"
-          >账号密码只会存在你本机上</small
-        >
+        <input type="email" class="form-control" v-model="wpUser" placeholder="账号" />
+        <small id="emailHelp" class="form-text text-muted">账号密码只会存在你本机上</small>
       </div>
       <div class="form-group">
         <label for="exampleInputPassword1">密码</label>
-        <input
-          type="password"
-          v-model="wpPwd"
-          class="form-control"
-          placeholder="密码"
-        />
+        <input type="password" v-model="wpPwd" class="form-control" placeholder="密码" />
       </div>
       <button type="submit" class="btn btn-primary" @click="create">
         <template v-if="checking">登陆中...</template>
@@ -147,13 +129,13 @@ export default {
         //   icon: 'https://csdnimg.cn/public/favicon.ico',
         //   name: 'CSDN',
         // },
-        // {
-        //   type: 'segmentfault',
-        //   home: 'https://segmentfault.com/user/draft',
-        //   icon:
-        //     'https://static.segmentfault.com/v-5d8c9d24/global/img/favicon.ico',
-        //   name: 'Segmentfault',
-        // },
+        {
+          type: 'segmentfault',
+          home: 'https://segmentfault.com/user/draft',
+          icon:
+            'https://static.segmentfault.com/v-5d8c9d24/global/img/favicon.ico',
+          name: 'Segmentfault',
+        },
         // {
         //   type: 'cnblog',
         //   home: 'https://i.cnblogs.com/EditArticles.aspx?IsDraft=1',
@@ -202,10 +184,10 @@ export default {
             self.$router.back()
           },
           function (res) {
-            const {error, jqXHR, status } = res
+            const { error, jqXHR, status } = res
             self.checking = false
-            // console.log('getMetaData', res)
-            if(status == 'error') {
+            console.log('getMetaData', res)
+            if (status == 'error') {
               alert(jqXHR.responseText)
               return
             }
@@ -225,10 +207,10 @@ export default {
             }
           }
         )
-        // .catch((er) => {
-        //   alert(er.toString())
-        //   console.log('error')
-        // })
+      // .catch((er) => {
+      //   alert(er.toString())
+      //   console.log('error')
+      // })
     },
   },
 }
